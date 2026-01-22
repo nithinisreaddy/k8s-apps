@@ -1,0 +1,16 @@
+apiVersion: nimbus.io/v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  owner: platform-team
+  lifecycle: experimental
+  namespace: dev
+  description: Demo nginx service on Nimbus IDP
+  repository: https://github.com/TempleInCloud/nimbus-idp
+  links:
+    - name: ArgoCD
+      url: http://argocd.local/applications/nginx
+    - name: Grafana
+      url: http://grafana.local
+
