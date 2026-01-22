@@ -1,16 +1,24 @@
-apiVersion: nimbus.io/v1
+apiVersion: platform.nimbus.io/v1alpha1
 kind: Service
 metadata:
   name: nginx
 spec:
+  description: Sample nginx web service deployed via ArgoCD
   owner: platform-team
-  lifecycle: experimental
-  namespace: dev
-  description: Demo nginx service on Nimbus IDP
-  repository: https://github.com/TempleInCloud/nimbus-idp
+  lifecycle: development
+
+  repository:
+    url: https://github.com/nithinisreaddy/k8s-apps
+    path: apps/nginx
+
+  deployment:
+    namespace: dev
+    argocdApp: nginx
+
   links:
     - name: ArgoCD
-      url: http://argocd.local/applications/nginx
-    - name: Grafana
-      url: http://grafana.local
-
+      url: https://192.168.18.12:8080/applications/nginx
+    - name: Service URL
+      url: http://192.168.18.12:30080
+    - name: Grafana Dashboard
+      url: http://192.168.18.12:3000
