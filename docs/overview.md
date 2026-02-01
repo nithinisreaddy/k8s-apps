@@ -1,4 +1,4 @@
-NIMBUS PLATFORM - KUBERNETES SETUP OVERVIEW
+ KUBERNETES SETUP OVERVIEW
 ==========================================
 
 This project is a small Internal Developer Platform (IDP) built on Kubernetes.
