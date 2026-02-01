@@ -1,0 +1,246 @@
+Day - 1
+"""# Kubernetes Homelab – Multi-Node Cluster with Ansible & kubeadm
+
+> A fully automated, multi-node Kubernetes homelab built using Multipass, Ansible, and kubeadm. Designed to mimic real-world production workflows with reproducibility, modularity, and GitOps-readiness.
+
+---
+
+## 🧠 Motivation
+
+This project was built to:
+- Learn Kubernetes deeply (not just kubectl commands)
+- Understand cluster internals
+- Practice real-world DevOps patterns
+- Build a reproducible platform
+- Create a base for GitOps, CI/CD, and self-hosted services
+
+---
+
+## 🖥️ Host System
+
+| Component | Value |
+|----------|-------|
+Host | Mac Mini M4
+RAM | 16 GB
+Storage | 256 GB SSD
+VM Provider | Multipass
+Guest OS | Ubuntu 22.04
+
+---
+
+## 🏗️ Cluster Architecture
+
+| Node | Role | IP |
+|------|------|----|
+| k8s-control-plane | Control Plane | 192.168.64.11 |
+| k8s-worker-1 | Worker | 192.168.64.12 |
+| k8s-worker-2 | Worker | 192.168.64.13 |
+| k8s-worker-3 | Worker | 192.168.64.14 |
+| ansible-control | Automation | 192.168.64.15 |
+
+---
+
+## ⚙️ Technologies Used
+
+- Kubernetes (kubeadm)
+- containerd (runtime)
+- Calico (CNI)
+- Ansible (IaC)
+- Multipass (VMs)
+- SSH agent forwarding
+- Role-based automation
+
+---
+
+## 🔐 SSH Setup
+
+- Passwordless SSH
+- SSH agent forwarding
+- Hostname-based access
+- `/etc/hosts` mapped on all nodes
+- Ansible control node can access all machines
+
+---
+
+## 📁 Repository Structure
+
+```
+ansible/
+├── ansible.cfg
+├── hosts
+├── site.yml
+└── roles/
+    ├── common/
+    ├── containerd/
+    ├── kubeadm/
+    ├── control-plane-init/
+    └── workers-join/
+```
+
+---
+
+## 📦 Ansible Inventory Groups
+
+| Group | Description |
+|-------|-------------|
+control | Control plane nodes
+workers | Worker nodes
+k8s | All Kubernetes nodes
+
+---
+
+## 🧩 Roles Explained
+
+### 1. `common`
+Prepares OS for Kubernetes:
+- Disables swap
+- Loads kernel modules
+- Applies sysctl tuning
+
+---
+
+### 2. `containerd`
+Installs and configures the container runtime:
+- Installs containerd
+- Enables systemd cgroups
+- Enables and starts the service
+
+---
+
+### 3. `kubeadm`
+Installs Kubernetes binaries:
+- kubeadm
+- kubelet
+- kubectl
+- Locks versions to prevent auto-upgrades
+
+---
+
+### 4. `control-plane-init`
+Bootstraps the cluster:
+- Runs `kubeadm init`
+- Sets up kubeconfig
+- Installs Calico CNI
+
+---
+
+### 5. `workers-join`
+Joins workers automatically:
+- Fetches join token from control plane
+- Executes join command
+- Idempotent
+
+---
+
+## 🌐 Networking
+
+CNI: **Calico**
+
+Why Calico?
+- Kubernetes does not include networking by default
+- Provides pod-to-pod communication
+- Supports NetworkPolicies
+- Production-grade
+
+---
+
+## ✅ Cluster Health
+
+Verify:
+
+```bash
+kubectl get nodes
+```
+
+All nodes should be `Ready`.
+
+---
+
+## 🧪 What This Setup Proves
+
+- End-to-end Kubernetes automation
+- No manual `kubeadm` steps
+- No copy/paste tokens
+- Role-based Ansible
+- Tag-driven execution
+- Production-style architecture
+
+---
+
+## 🛣️ Roadmap
+
+Planned additions:
+
+- MetalLB (bare-metal LoadBalancer)
+- Ingress Controller
+- cert-manager (TLS)
+- ArgoCD (GitOps)
+- Resume website
+- CI/CD pipelines
+- Observability stack (Prometheus, Grafana)
+
+---
+
+## 🚀 How to Run
+
+Examples:
+
+Run all roles:
+
+```bash
+ansible-playbook site.yml
+```
+
+Run only common setup:
+
+```bash
+ansible-playbook site.yml --tags common
+```
+
+Run only control plane init:
+
+```bash
+ansible-playbook site.yml --tags control-plane
+```
+
+Run only worker joins:
+
+```bash
+ansible-playbook site.yml --tags workers
+```
+
+---
+
+## 📌 Why This Matters
+
+This homelab simulates how real infrastructure is built:
+- Declarative
+- Reproducible
+- Automated
+- Safe to rebuild
+- Versioned
+- Modular
+
+---
+
+## 🧠 Lessons Learned
+
+- Kubernetes does not manage networking — CNI is mandatory
+- kubeadm is just a bootstrapper
+- Control plane ≠ workers
+- Automation prevents mistakes
+- Infrastructure should be disposable
+
+---
+
+## 🏁 Status
+
+✔ Multi-node cluster running  
+✔ Control plane healthy  
+✔ Workers joined  
+✔ CNI functional  
+✔ Fully automated  
+
+---
+"""
+

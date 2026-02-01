@@ -1,0 +1,157 @@
+Day 2/cheatsheet
+
+# Kubernetes Cheat Sheet
+
+## Core Components (Control Plane)
+
+- etcd → Kubernetes database (stores all cluster state)
+- kube-apiserver → Front door to the cluster (kubectl talks to this)
+- kube-scheduler → Decides which node a pod runs on
+- kube-controller-manager → Self-healing brain (keeps desired state)
+- kubelet → Agent on each node that runs pods
+- containerd → Container runtime (actually runs containers)
+
+---
+
+## Networking
+
+- CNI (Calico) → Pod-to-pod networking
+- kube-proxy → Implements Services & load balancing
+- CoreDNS → DNS inside the cluster
+
+---
+
+## Core Objects
+
+- Pod → Smallest unit (one or more containers)
+- Deployment → Manages replicas of Pods
+- ReplicaSet → Ensures N pods exist
+- Service → Stable virtual IP for Pods
+- Namespace → Logical isolation
+- ConfigMap → Non-secret config
+- Secret → Sensitive config
+- Ingress → HTTP routing into cluster
+- StatefulSet → Pods with identity & stable storage
+- DaemonSet → Runs one Pod on every node
+- Job → Run once
+- CronJob → Run on schedule
+
+---
+
+## Pod Types
+
+- Static Pod → Started directly by kubelet (control plane)
+- DaemonSet Pod → One per node
+- ReplicaSet Pod → Managed by Deployment
+- Job Pod → Runs once then exits
+
+---
+
+## Basic kubectl Commands
+
+### Cluster
+kubectl get nodes
+kubectl get pods -A
+kubectl cluster-info
+
+### Pods
+kubectl get pods
+kubectl describe pod <pod>
+kubectl logs <pod>
+kubectl exec -it <pod> -- sh
+
+### Deployments
+kubectl get deployments
+kubectl create deployment nginx --image=nginx
+kubectl scale deployment nginx --replicas=3
+kubectl delete deployment nginx
+
+### Services
+kubectl get svc
+kubectl expose deployment nginx --port=80 --type=ClusterIP
+
+### YAML
+kubectl apply -f file.yaml
+kubectl delete -f file.yaml
+
+---
+
+## Service Types
+
+- ClusterIP → Internal only
+- NodePort → Exposes on node IP:port
+- LoadBalancer → External IP (via MetalLB/cloud)
+- Headless → No virtual IP
+
+---
+
+## Storage
+
+- PV → Physical storage
+- PVC → Claim to storage
+- StorageClass → Dynamic provisioning
+
+---
+
+## Scheduling
+
+- Taints & Tolerations → Keep pods away from nodes
+- NodeSelector → Simple placement rules
+- Affinity → Advanced placement
+
+---
+
+## Health Checks
+
+- Liveness Probe → Restart if broken
+- Readiness Probe → Remove from traffic
+- Startup Probe → Slow-start containers
+
+---
+
+## Scaling
+
+- HPA → Horizontal Pod Autoscaler
+- VPA → Vertical Pod Autoscaler
+- Manual → kubectl scale
+
+---
+
+## Real-World Add-ons
+
+- Ingress Controller → NGINX, Traefik
+- cert-manager → TLS automation
+- ArgoCD → GitOps
+- Prometheus → Metrics
+- Grafana → Dashboards
+- MetalLB → LoadBalancer on bare metal
+
+---
+
+## Debugging
+
+kubectl describe pod <pod>
+kubectl logs <pod>
+kubectl get events
+kubectl get pods -o wide
+kubectl get svc -o wide
+
+---
+
+## Mental Model
+
+User → kubectl → API Server → etcd
+                     ↓
+             Scheduler → Node
+                     ↓
+                  kubelet
+                     ↓
+               containerd
+
+---
+
+## Your Cluster Architecture
+
+Mac → QEMU → Ubuntu → containerd → Kubernetes
+"""
+

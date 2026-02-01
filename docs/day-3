@@ -1,0 +1,345 @@
+DAY 3 – KUBERNETES PLATFORM NOTES
+================================
+
+--------------------------------------------------
+1. NAMESPACES
+--------------------------------------------------
+Namespaces are logical folders inside Kubernetes.
+
+They allow you to:
+- Separate concerns (apps vs monitoring vs platform)
+- Apply RBAC later
+- Scale cleanly
+- Add limits per environment (dev, prod, etc.)
+
+Example namespaces:
+dev
+argocd
+observability
+traefik
+keycloak
+
+
+--------------------------------------------------
+2. BASIC KUBERNETES FILE TYPES
+--------------------------------------------------
+File Type      Purpose
+--------------------------------
+Deployment     Runs containers (Pods)
+Service        Exposes Pods internally
+Ingress        Exposes Services externally
+
+
+--------------------------------------------------
+3. ARGOCD APPLICATION (GITOPS)
+--------------------------------------------------
+ArgoCD is the brain of the platform.
+
+What it does:
+- Watches GitHub repository
+- Applies YAML to Kubernetes automatically
+- Keeps cluster in sync with Git
+
+Flow:
+GitHub → ArgoCD → Kubernetes
+
+This is the “magic” of GitOps.
+
+
+--------------------------------------------------
+4. SERVICE EXPOSURE METHODS
+--------------------------------------------------
+
+Method         Used For
+--------------------------------
+NodePort       Quick exposure without Ingress
+Port-forward   Admin / operator access
+Ingress        Production HTTP routing
+
+
+NodePort:
+- Opens a port on every node
+- Accessible via Node IP (VM / Mac)
+- No TLS
+- No auth
+- Hardcoded ports
+
+Use for:
+- Quick demos
+- Homelabs
+- Bare metal testing
+- When no Ingress exists
+
+
+--------------------------------------------------
+5. SERVICE TYPES (IMPORTANT)
+--------------------------------------------------
+
+1) ClusterIP (default, most important)
+Who can access:
+- Pods inside cluster
+- Ingress controller
+- Port-forward
+- Other services
+
+Who cannot:
+- External users (by default)
+
+Use when:
+- App is internal
+- App is behind Ingress
+- Platform workloads
+
+90% of services should be ClusterIP
+
+
+2) NodePort (escape hatch)
+What it does:
+- Opens port on every node
+- Bypasses routing layers
+
+Problems:
+- Hardcoded ports
+- No TLS
+- No auth
+- Not cloud portable
+- Easy to forget open ports
+
+Convenience tool, not architecture
+
+
+3) Ingress / LoadBalancer (real external access)
+What it provides:
+- DNS routing
+- TLS
+- Auth
+- Path / host routing
+
+Use when:
+- Real users
+- Production
+- Multiple apps
+- Platform-grade setup
+
+
+--------------------------------------------------
+6. INGRESS vs INGRESS CONTROLLER
+--------------------------------------------------
+
+Ingress ≠ Ingress Controller
+
+Thing                 What it does
+-----------------------------------------
+Ingress               Routing rules (YAML)
+Ingress Controller    Reverse proxy (Traefik / NGINX)
+
+Without a controller, Ingress does nothing.
+
+
+Example flow:
+
+NodeIP:80 → Traefik (Ingress Controller)
+              |
+              ├── grafana.local → Grafana Service
+              ├── argocd.local → ArgoCD Service
+              └── app.local → App Service
+
+
+--------------------------------------------------
+7. TRAEFIK ROLE
+--------------------------------------------------
+Traefik is the Ingress Controller.
+
+It listens on ports 80 and 443 and routes traffic based on hostnames.
+
+Browser → Traefik → Service → Pod → Application
+
+
+--------------------------------------------------
+8. SERVICE CATALOG (PLATFORM CONCEPT)
+--------------------------------------------------
+Kubernetes Service = traffic  
+Service Catalog = knowledge  
+
+Without catalog:
+- What is nginx?
+- Who owns it?
+- Is it prod or dev?
+- Where is the URL?
+- Is it safe to delete?
+
+With catalog:
+- Ownership
+- Lifecycle
+- URL
+- ArgoCD app
+- Namespace
+- Purpose
+
+“A Kubernetes Service exposes traffic, while a Service Catalog entry describes ownership, lifecycle, and operational context for a workload.”
+
+
+--------------------------------------------------
+9. OBSERVABILITY (GRAFANA / PROMETHEUS)
+--------------------------------------------------
+
+Grafana access:
+kubectl port-forward -n observability svc/observability-grafana 3000:80 --address 0.0.0.0
+
+Login:
+username: admin
+password: admin
+
+Prometheus collects metrics.
+Grafana visualizes them.
+
+
+--------------------------------------------------
+10. RESOURCE LIMITS AND GUARDRAILS
+--------------------------------------------------
+
+Levels of protection:
+
+Per container:
+- CPU limits
+- Memory limits
+
+Per namespace:
+- ResourceQuota
+- Total capacity limits
+
+Platform:
+- Predictable behavior
+- Prevents one app from killing the cluster
+
+
+Concepts:
+
+defaultRequest = what each pod needs  
+defaultLimit   = max pod can use  
+ResourceQuota  = what namespace can use (total)
+
+
+--------------------------------------------------
+11. NETWORKING ANALOGY
+--------------------------------------------------
+
+Real life example:
+
+User: “I want pizza”
+
+Ingress: “Pizza counter is over there (service)”
+Service: “Any pizza chef available? (pods)”
+Pod: “Here is your pizza (app response)”
+
+
+--------------------------------------------------
+12. PORT MAPPING
+--------------------------------------------------
+
+containerPort:
+- Documents what port the container listens on
+
+targetPort:
+- Service forwards traffic to this port
+
+Example:
+Service port 80 → targetPort 5000 → containerPort 5000 (Flask app)
+
+
+--------------------------------------------------
+13. METALLB LOADBALANCER INTEGRATION
+--------------------------------------------------
+
+MetalLB provides LoadBalancer functionality for on-prem clusters.
+
+It assigns an external IP from local network pool to Services of type LoadBalancer.
+
+Traefik is exposed as LoadBalancer service.
+
+Flow:
+Client → MetalLB External IP → Traefik → Ingress → Service → Pod
+
+Example external IP:
+192.168.18.240
+
+Check with:
+kubectl get svc -n traefik
+
+DNS or /etc/hosts maps domains to this IP.
+
+
+--------------------------------------------------
+14. ARGOCD INSECURE MODE (TEMP FIX)
+--------------------------------------------------
+
+For local setup (to avoid TLS/auth issues):
+
+argocd-server args:
+--insecure
+--disable-auth
+
+
+--------------------------------------------------
+15. HPA (HORIZONTAL POD AUTOSCALER)
+--------------------------------------------------
+
+ReplicaSets create fixed number of Pods.
+HPA changes Pods based on load.
+
+Example:
+minReplicas: 2
+maxReplicas: 10
+CPU target: 70%
+
+Meaning:
+“Add more workers when there is more work”
+
+
+--------------------------------------------------
+16. KEYCLOAK (AUTHENTICATION / SSO)
+--------------------------------------------------
+
+Keycloak provides:
+- Login system
+- Users and roles
+- Tokens (JWT)
+- Single Sign-On (SSO)
+
+Used to protect:
+- Frontend
+- Backend
+- Grafana
+- ArgoCD
+
+Flow:
+User → Keycloak → token → frontend/backend
+
+
+--------------------------------------------------
+17. OVERALL TRAFFIC FLOW
+--------------------------------------------------
+
+Browser
+   ↓
+Node IP : 80/443 (Traefik)
+   ↓
+Ingress rule (frontend.local / backend.local)
+   ↓
+Service
+   ↓
+Pod (containerPort)
+   ↓
+Application
+
+
+--------------------------------------------------
+18. GOAL OF THIS PLATFORM
+--------------------------------------------------
+
+- Learn Kubernetes networking
+- Learn GitOps with ArgoCD
+- Learn Ingress and Services
+- Learn observability
+- Learn authentication
+- Build production-like architecture
